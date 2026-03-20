@@ -936,8 +936,9 @@ tr.ev-row-done .ev-title-cell { text-decoration:line-through; color:var(--text3)
 /* ── ANALYTICS v3 ── */
 .an-v2-page {
   display:flex; flex-direction:column; gap:18px;
-  padding:20px 24px 60px; background:var(--bg);
-  flex:1; overflow-y:auto; min-width:0;
+  padding:20px 24px 32px; background:var(--bg);
+  flex:1; overflow-y:auto; overflow-x:hidden; min-width:0; min-height:0;
+  box-sizing:border-box;
 }
 .an-v2-header {
   display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
@@ -1019,10 +1020,11 @@ tr.ev-row-done .ev-title-cell { text-decoration:line-through; color:var(--text3)
 .an-v2-chart-card {
   background:var(--surface); border:1px solid var(--border);
   border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden;
+  display:flex; flex-direction:column; width:100%; box-sizing:border-box;
 }
 .an-v2-chart-head {
   display:flex; align-items:center; justify-content:space-between;
-  padding:14px 18px 0; flex-wrap:wrap; gap:8px;
+  padding:14px 18px 12px; flex-wrap:wrap; gap:8px; flex-shrink:0;
 }
 .an-v2-chart-head-left { display:flex; flex-direction:column; gap:2px; }
 .an-v2-chart-title { font-size:.88rem; font-weight:700; color:var(--text1); }
@@ -1034,17 +1036,21 @@ tr.ev-row-done .ev-title-cell { text-decoration:line-through; color:var(--text3)
   width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px;
 }
 .an-v2-chart-body {
-  position:relative; width:100%; height:280px; min-height:280px; padding:0 4px 4px; box-sizing:border-box;
+  position:relative; width:100%; height:300px; min-height:300px;
+  padding:0; box-sizing:border-box; flex-shrink:0;
+}
+.an-v2-chart-body canvas {
+  display:block; position:absolute; inset:0;
 }
 .an-v2-chart-foot {
-  display:flex; align-items:center; justify-content:center; gap:20px;
+  display:flex; align-items:center; justify-content:center; gap:20px; flex-shrink:0;
   padding:8px 0 14px; font-size:.71rem; font-weight:600; color:var(--text3);
   border-top:1px solid var(--border);
 }
 
 /* bottom two-col summary */
 .an-summary-row {
-  display:grid; grid-template-columns:1fr 1fr; gap:14px;
+  display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%;
 }
 .an-summary-card {
   background:var(--surface); border:1px solid var(--border);
@@ -1888,8 +1894,15 @@ tr:hover .h-row-actions { opacity:1; }
   .an-v2-chart-body {
     height: 240px !important;
     min-height: 240px !important;
-    padding: 0 2px 2px !important;
+    padding: 0 !important;
     flex-shrink: 0 !important;
+    position: relative !important;
+  }
+  .an-v2-chart-body canvas {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
   }
   .an-v2-chart-foot {
     padding: 7px 0 10px !important;
@@ -4260,6 +4273,16 @@ function showPage(page) {
   if(page==='analytics'){
     if(ap){ ap.style.display='flex'; }
     if(ct) ct.style.display='none';
+    // Attach a ResizeObserver on the analytics page itself so sidebar
+    // collapse/expand (which changes page width) triggers a redraw
+    if(window.ResizeObserver && !ap._pageResizeObs){
+      ap._pageResizeObs = new ResizeObserver(() => {
+        if(currentPage === 'analytics' && _lastChartData.length){
+          _drawChart('activityChart', _lastChartData, _lastChartLabels);
+        }
+      });
+      ap._pageResizeObs.observe(ap);
+    }
     // Always defer two frames so flex layout fully settles before canvas measures
     requestAnimationFrame(function(){
       requestAnimationFrame(function(){ renderAnalytics(); });
@@ -4594,111 +4617,154 @@ async function renderAnalytics(){
   await renderMonthlyProductivity();
 }
 
-/* ── Draw the main chart (canvas line+area) ── */
-function drawAnalyticsChart(canvasId, data, labels){
-  const canvas=document.getElementById(canvasId);
-  if(!canvas) return;
+/* ── ResizeObserver for the chart body — redraws whenever container resizes ── */
+let _chartResizeObserver = null;
+let _lastChartData = [], _lastChartLabels = [];
 
-  // If the canvas has no layout dimensions yet, wait one frame and retry
+function _initChartResizeObserver() {
+  if (!window.ResizeObserver) return;
+  const body = document.getElementById('activityChart')?.parentElement;
+  if (!body || _chartResizeObserver) return;
+  _chartResizeObserver = new ResizeObserver(() => {
+    if (_lastChartData.length) {
+      _drawChart('activityChart', _lastChartData, _lastChartLabels);
+    }
+  });
+  _chartResizeObserver.observe(body);
+}
+
+/* ── Core canvas draw (called from both main + fullscreen) ── */
+function _drawChart(canvasId, data, labels) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
   const parent = canvas.parentElement;
-  const parentH = parent ? parent.offsetHeight : 0;
-  const parentW = parent ? parent.offsetWidth : 0;
-  if(parentH < 10 || parentW < 10){
-    requestAnimationFrame(()=>drawAnalyticsChart(canvasId, data, labels));
+  if (!parent) return;
+
+  // Force layout flush to get accurate dimensions
+  const W = parent.getBoundingClientRect().width  || parent.offsetWidth  || 700;
+  const H = parent.getBoundingClientRect().height || parent.offsetHeight || 300;
+
+  if (W < 20 || H < 20) {
+    requestAnimationFrame(() => _drawChart(canvasId, data, labels));
     return;
   }
 
-  const dpr=window.devicePixelRatio||1;
-  const W=parentW||canvas.offsetWidth||700;
-  const H=parentH||canvas.offsetHeight||280;
-  canvas.width=W*dpr; canvas.height=H*dpr;
-  canvas.style.width=W+'px'; canvas.style.height=H+'px';
-  const ctx=canvas.getContext('2d');
-  ctx.scale(dpr,dpr);
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  const PAD={top:24,right:16,bottom:46,left:38};
-  const cW=W-PAD.left-PAD.right, cH=H-PAD.top-PAD.bottom;
-  ctx.clearRect(0,0,W,H);
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+  }
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
 
-  const hasAnyData=data.some(d=>(d.total||0)>0||(d.done||0)>0);
-  if(!data.length||!hasAnyData){
-    ctx.fillStyle=isDark?'rgba(232,235,248,.18)':'rgba(74,82,120,.18)';
-    ctx.font=`500 13px 'Sora',sans-serif`; ctx.textAlign='center';
-    ctx.fillText('No task data yet \u2014 add tasks to see your analytics',W/2,H/2-10);
-    ctx.font=`400 11px 'Sora',sans-serif`;
-    ctx.fillText('Your progress will appear here once you start tracking',W/2,H/2+10);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const PAD = { top: 28, right: 20, bottom: 52, left: 44 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top  - PAD.bottom;
+  ctx.clearRect(0, 0, W, H);
+
+  const hasData = data.some(d => (d.total||0) > 0 || (d.done||0) > 0);
+  if (!data.length || !hasData) {
+    ctx.fillStyle = isDark ? 'rgba(232,235,248,.2)' : 'rgba(74,82,120,.25)';
+    ctx.font = `500 13px 'Sora', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('No task data yet — add tasks to see your analytics', W/2, H/2 - 12);
+    ctx.font = `400 11px 'Sora', sans-serif`;
+    ctx.fillStyle = isDark ? 'rgba(232,235,248,.12)' : 'rgba(74,82,120,.15)';
+    ctx.fillText('Your progress will appear here once you start tracking', W/2, H/2 + 10);
     return;
   }
 
-  const maxVal=Math.max(...data.map(d=>d.total||d.done||0),1);
-  const niceMax=maxVal<=5?5:maxVal<=10?10:maxVal<=20?20:Math.ceil(maxVal/5)*5;
-  const gridColor=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
-  const textColor=isDark?'rgba(232,235,248,.45)':'rgba(74,82,120,.65)';
+  const maxVal  = Math.max(...data.map(d => d.total || d.done || 0), 1);
+  const niceMax = maxVal <= 5 ? 5 : maxVal <= 10 ? 10 : maxVal <= 20 ? 20 : Math.ceil(maxVal / 5) * 5;
+  const gridColor = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)';
+  const textColor = isDark ? 'rgba(232,235,248,.4)'  : 'rgba(74,82,120,.6)';
+  const ySteps = 5;
 
-  const ySteps=5;
-  ctx.strokeStyle=gridColor; ctx.lineWidth=1;
-  for(let i=0;i<=ySteps;i++){
-    const y=PAD.top+cH-(i/ySteps)*cH;
-    ctx.beginPath(); ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+cW,y); ctx.stroke();
-    ctx.fillStyle=textColor; ctx.font=`600 9px 'Sora',sans-serif`; ctx.textAlign='right';
-    ctx.fillText(Math.round((i/ySteps)*niceMax),PAD.left-5,y+3);
+  // Y-axis grid lines + labels
+  ctx.strokeStyle = gridColor; ctx.lineWidth = 1;
+  for (let i = 0; i <= ySteps; i++) {
+    const y = PAD.top + cH - (i / ySteps) * cH;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + cW, y); ctx.stroke();
+    ctx.fillStyle = textColor;
+    ctx.font = `600 9px 'Sora', sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round((i / ySteps) * niceMax), PAD.left - 6, y + 3);
   }
 
-  const n=data.length;
-  const xStep=cW/(n-1||1);
-  const xOf=i=>PAD.left+i*xStep;
-  const yOf=v=>PAD.top+cH-(Math.min(v,niceMax)/niceMax)*cH;
+  const n = data.length;
+  const xStep = cW / (n - 1 || 1);
+  const xOf = i => PAD.left + i * xStep;
+  const yOf = v => PAD.top + cH - (Math.min(v, niceMax) / niceMax) * cH;
 
-  const lx=xOf(n-1);
-  ctx.fillStyle=isDark?'rgba(255,255,255,.04)':'rgba(91,95,239,.06)';
-  ctx.fillRect(lx-xStep/2,PAD.top,xStep/2,cH);
+  // "Today" highlight stripe
+  const lx = xOf(n - 1);
+  ctx.fillStyle = isDark ? 'rgba(255,255,255,.025)' : 'rgba(91,95,239,.04)';
+  ctx.fillRect(lx - xStep / 2, PAD.top, xStep / 2, cH);
 
-  // Total: dashed indigo
-  ctx.beginPath(); ctx.strokeStyle='rgba(91,95,239,.5)'; ctx.lineWidth=1.5;
-  ctx.setLineDash([4,3]); ctx.lineJoin='round';
-  data.forEach((d,i)=>{ const v=d.total||0; const x=xOf(i),y=yOf(v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  // Total line (dashed indigo)
+  ctx.beginPath(); ctx.strokeStyle = 'rgba(91,95,239,.45)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]); ctx.lineJoin = 'round';
+  data.forEach((d, i) => { const v = d.total||0; i === 0 ? ctx.moveTo(xOf(i), yOf(v)) : ctx.lineTo(xOf(i), yOf(v)); });
   ctx.stroke(); ctx.setLineDash([]);
 
-  // Missed: red area
-  const gradMissed=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);
-  gradMissed.addColorStop(0,'rgba(239,68,68,.25)'); gradMissed.addColorStop(1,'rgba(239,68,68,.02)');
+  // Missed area
+  const gradMissed = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+  gradMissed.addColorStop(0, 'rgba(239,68,68,.22)'); gradMissed.addColorStop(1, 'rgba(239,68,68,.01)');
   ctx.beginPath();
-  data.forEach((d,i)=>{ const x=xOf(i),y=yOf(d.missed||0); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.lineTo(xOf(n-1),PAD.top+cH); ctx.lineTo(PAD.left,PAD.top+cH); ctx.closePath();
-  ctx.fillStyle=gradMissed; ctx.fill();
-  ctx.beginPath(); ctx.strokeStyle='#EF4444'; ctx.lineWidth=2; ctx.lineJoin='round';
-  data.forEach((d,i)=>{ const x=xOf(i),y=yOf(d.missed||0); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  data.forEach((d, i) => { i === 0 ? ctx.moveTo(xOf(i), yOf(d.missed||0)) : ctx.lineTo(xOf(i), yOf(d.missed||0)); });
+  ctx.lineTo(xOf(n-1), PAD.top + cH); ctx.lineTo(PAD.left, PAD.top + cH); ctx.closePath();
+  ctx.fillStyle = gradMissed; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+  data.forEach((d, i) => { i === 0 ? ctx.moveTo(xOf(i), yOf(d.missed||0)) : ctx.lineTo(xOf(i), yOf(d.missed||0)); });
   ctx.stroke();
 
-  // Completed: green area
-  const gradDone=ctx.createLinearGradient(0,PAD.top,0,PAD.top+cH);
-  gradDone.addColorStop(0,'rgba(34,197,94,.35)'); gradDone.addColorStop(1,'rgba(34,197,94,.02)');
+  // Completed area
+  const gradDone = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + cH);
+  gradDone.addColorStop(0, 'rgba(34,197,94,.32)'); gradDone.addColorStop(1, 'rgba(34,197,94,.01)');
   ctx.beginPath();
-  data.forEach((d,i)=>{ const x=xOf(i),y=yOf(d.done||0); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.lineTo(xOf(n-1),PAD.top+cH); ctx.lineTo(PAD.left,PAD.top+cH); ctx.closePath();
-  ctx.fillStyle=gradDone; ctx.fill();
-  ctx.beginPath(); ctx.strokeStyle='#22C55E'; ctx.lineWidth=2.2; ctx.lineJoin='round'; ctx.lineCap='round';
-  data.forEach((d,i)=>{ const x=xOf(i),y=yOf(d.done||0); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  data.forEach((d, i) => { i === 0 ? ctx.moveTo(xOf(i), yOf(d.done||0)) : ctx.lineTo(xOf(i), yOf(d.done||0)); });
+  ctx.lineTo(xOf(n-1), PAD.top + cH); ctx.lineTo(PAD.left, PAD.top + cH); ctx.closePath();
+  ctx.fillStyle = gradDone; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle = '#22C55E'; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  data.forEach((d, i) => { i === 0 ? ctx.moveTo(xOf(i), yOf(d.done||0)) : ctx.lineTo(xOf(i), yOf(d.done||0)); });
   ctx.stroke();
 
-  // Dots (completed)
-  data.forEach((d,i)=>{
-    const x=xOf(i), y=yOf(d.done||0);
-    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
-    ctx.fillStyle='#22C55E'; ctx.fill();
-    ctx.strokeStyle=isDark?'#111428':'#fff'; ctx.lineWidth=1.8; ctx.stroke();
+  // Data point dots
+  data.forEach((d, i) => {
+    ctx.beginPath(); ctx.arc(xOf(i), yOf(d.done||0), 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#22C55E'; ctx.fill();
+    ctx.strokeStyle = isDark ? '#111428' : '#fff'; ctx.lineWidth = 1.8; ctx.stroke();
   });
 
   // X-axis labels
-  ctx.fillStyle=textColor; ctx.font=`600 9px 'Sora',sans-serif`; ctx.textAlign='center';
-  const step=Math.ceil(n/12);
-  labels.forEach((lbl,i)=>{
-    if(i%step!==0&&i!==n-1) return;
-    const x=xOf(i);
-    ctx.fillStyle=(i===n-1)?(isDark?'#e8ebf8':'#5B5FEF'):textColor;
-    ctx.font=(i===n-1)?`700 9px 'Sora',sans-serif`:`600 9px 'Sora',sans-serif`;
-    ctx.fillText(lbl,x,PAD.top+cH+16);
+  ctx.fillStyle = textColor; ctx.font = `600 9px 'Sora', sans-serif`; ctx.textAlign = 'center';
+  const maxLabels = Math.floor(cW / 38); // ~38px per label
+  const step = Math.max(1, Math.ceil(n / maxLabels));
+  labels.forEach((lbl, i) => {
+    if (i % step !== 0 && i !== n - 1) return;
+    ctx.fillStyle = (i === n - 1) ? (isDark ? '#e8ebf8' : '#5B5FEF') : textColor;
+    ctx.font = (i === n - 1) ? `700 9px 'Sora', sans-serif` : `600 9px 'Sora', sans-serif`;
+    ctx.fillText(lbl, xOf(i), PAD.top + cH + 18);
   });
+
+  // X-axis baseline
+  ctx.beginPath(); ctx.strokeStyle = isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)'; ctx.lineWidth = 1;
+  ctx.moveTo(PAD.left, PAD.top + cH); ctx.lineTo(PAD.left + cW, PAD.top + cH); ctx.stroke();
+}
+
+/* ── Draw the main chart (canvas line+area) ── */
+function drawAnalyticsChart(canvasId, data, labels) {
+  if (canvasId === 'activityChart') {
+    _lastChartData   = data;
+    _lastChartLabels = labels;
+    _initChartResizeObserver();
+  }
+  _drawChart(canvasId, data, labels);
 }
 
 /* ── Weekly Summary bars ── */
@@ -4756,13 +4822,6 @@ document.querySelectorAll('.an-view-tab').forEach(btn=>{
 window.addEventListener('resize',()=>{
   if(currentPage==='analytics'){
     requestAnimationFrame(()=> requestAnimationFrame(()=> renderAnalytics()));
-  }
-  // Also redraw inline chart if only data changed
-  if(_fsLastData.length){
-    const ov = document.getElementById('chartFullscreenOv');
-    if(ov && ov.style.display !== 'none'){
-      requestAnimationFrame(()=> requestAnimationFrame(()=> _drawAnalyticsChartOrig('activityChartFS', _fsLastData, _fsLastLabels)));
-    }
   }
 });
 
@@ -5419,22 +5478,14 @@ async function init(){
 
 /* ── CHART FULLSCREEN ── */
 
-/* ── Fullscreen chart ── */
-let _fsLastData = [], _fsLastLabels = [];
-
-function _fsOrigDraw(canvasId, data, labels){
-  // Calls the real drawAnalyticsChart by name — always up-to-date
-  drawAnalyticsChart(canvasId, data, labels);
-}
-
 // Monkey-patch drawAnalyticsChart so fullscreen canvas stays in sync
 const _drawAnalyticsChartOrig = drawAnalyticsChart;
 window.drawAnalyticsChart = function(canvasId, data, labels){
-  _fsLastData = data; _fsLastLabels = labels;
   _drawAnalyticsChartOrig(canvasId, data, labels);
+  // If fullscreen is open, redraw it too with the latest data
   const ov = document.getElementById('chartFullscreenOv');
-  if(ov && ov.style.display !== 'none'){
-    _drawAnalyticsChartOrig('activityChartFS', data, labels);
+  if(ov && ov.style.display !== 'none' && canvasId === 'activityChart'){
+    _drawChart('activityChartFS', data, labels);
   }
 };
 
@@ -5442,7 +5493,9 @@ function initFullscreenChart(){
   const ov = document.getElementById('chartFullscreenOv');
   if(!ov) return;
 
-  document.getElementById('chartFullscreenBtn').addEventListener('click', ()=>{
+  let _fsResizeObserver = null;
+
+  function openFullscreen() {
     const t = document.getElementById('anChartTitle');
     const r = document.getElementById('anChartRange');
     const ft = document.getElementById('fsChartTitle');
@@ -5450,23 +5503,39 @@ function initFullscreenChart(){
     if(t && ft) ft.textContent = t.textContent;
     if(r && fr) fr.textContent = r.textContent;
     ov.style.display = 'flex';
-    // Double rAF: first frame the overlay becomes flex, second frame layout is settled
-    requestAnimationFrame(()=> requestAnimationFrame(()=> _drawAnalyticsChartOrig('activityChartFS', _fsLastData, _fsLastLabels)));
-  });
+    document.body.style.overflow = 'hidden';
 
-  document.getElementById('chartFullscreenClose').addEventListener('click', ()=>{
+    // Attach ResizeObserver to the fullscreen body
+    const fsBody = document.getElementById('fsChartBody');
+    if(fsBody && window.ResizeObserver && !_fsResizeObserver) {
+      _fsResizeObserver = new ResizeObserver(() => {
+        if(_lastChartData.length) _drawChart('activityChartFS', _lastChartData, _lastChartLabels);
+      });
+      _fsResizeObserver.observe(fsBody);
+    }
+
+    // Draw after layout settles — triple rAF for fullscreen transition
+    requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+      if(_lastChartData.length) _drawChart('activityChartFS', _lastChartData, _lastChartLabels);
+    })));
+  }
+
+  function closeFullscreen() {
     ov.style.display = 'none';
-  });
+    document.body.style.overflow = '';
+    if(_fsResizeObserver) {
+      _fsResizeObserver.disconnect();
+      _fsResizeObserver = null;
+    }
+  }
 
-  ov.addEventListener('click', e => { if(e.target === ov) ov.style.display = 'none'; });
+  const openBtn = document.getElementById('chartFullscreenBtn');
+  if(openBtn) openBtn.addEventListener('click', openFullscreen);
 
+  document.getElementById('chartFullscreenClose').addEventListener('click', closeFullscreen);
+  ov.addEventListener('click', e => { if(e.target === ov) closeFullscreen(); });
   document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && ov.style.display !== 'none') ov.style.display = 'none';
-  });
-
-  window.addEventListener('resize', ()=>{
-    if(ov.style.display !== 'none')
-      requestAnimationFrame(()=> _drawAnalyticsChartOrig('activityChartFS', _fsLastData, _fsLastLabels));
+    if(e.key === 'Escape' && ov.style.display !== 'none') closeFullscreen();
   });
 }
 
@@ -6165,25 +6234,27 @@ snapshotAnalytics = async function() {
 </script>
 
 <!-- Fullscreen chart overlay -->
-<div id="chartFullscreenOv" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column;padding:20px;box-sizing:border-box;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0;">
+<div id="chartFullscreenOv" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column;padding:0;box-sizing:border-box;">
+  <!-- Header bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;">
     <div>
       <div style="font-size:1rem;font-weight:700;color:var(--text1);" id="fsChartTitle">Activity Overview</div>
       <div style="font-size:.72rem;color:var(--text3);margin-top:2px;" id="fsChartRange"></div>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;">
+    <div style="display:flex;align-items:center;gap:16px;">
       <div style="display:flex;align-items:center;gap:14px;font-size:.72rem;font-weight:600;color:var(--text3);">
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22C55E;margin-right:4px;"></span>Completed</span>
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;margin-right:4px;"></span>Missed</span>
-        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#5B5FEF;opacity:.7;margin-right:4px;"></span>Total</span>
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22C55E;margin-right:5px;"></span>Completed</span>
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#EF4444;margin-right:5px;"></span>Missed</span>
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#5B5FEF;opacity:.7;margin-right:5px;"></span>Total</span>
       </div>
-      <button id="chartFullscreenClose" title="Exit fullscreen" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.1)';this.style.color='#EF4444';this.style.borderColor='#EF4444';" onmouseout="this.style.background='transparent';this.style.color='var(--text2)';this.style.borderColor='var(--border2)';">
+      <button id="chartFullscreenClose" title="Exit fullscreen (Esc)" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.1)';this.style.color='#EF4444';this.style.borderColor='#EF4444';" onmouseout="this.style.background='transparent';this.style.color='var(--text2)';this.style.borderColor='var(--border2)';">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
   </div>
-  <div id="fsChartBody" style="flex:1;min-height:0;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);padding:8px;box-shadow:var(--shadow);overflow:hidden;position:relative;">
-    <canvas id="activityChartFS" style="display:block;"></canvas>
+  <!-- Canvas fills the rest -->
+  <div id="fsChartBody" style="flex:1;min-height:0;background:var(--surface);position:relative;overflow:hidden;">
+    <canvas id="activityChartFS" style="display:block;position:absolute;inset:0;"></canvas>
   </div>
 </div>
 
