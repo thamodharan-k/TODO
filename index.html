@@ -836,6 +836,37 @@ tr.ev-row-done .ev-title-cell { text-decoration:line-through; color:var(--text3)
   transition:all .15s; margin-top:2px;
 }
 .auth-btn:hover { opacity:.95; transform:translateY(-1px); box-shadow:0 6px 28px rgba(0,184,220,.55); }
+
+/* Google Sign-In button */
+.auth-google-btn {
+  width:100%; padding:10px 14px;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(0,210,220,.25);
+  border-radius:var(--r-sm); font-size:.84rem; font-weight:700;
+  color:#d4f4f8; font-family:var(--font); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  transition:all .15s; position:relative;
+}
+.auth-google-btn:hover {
+  background: rgba(255,255,255,.11);
+  border-color: rgba(0,210,220,.5);
+  transform:translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.auth-google-btn:active { transform:translateY(0); }
+.auth-google-btn svg { flex-shrink:0; }
+.auth-google-btn.loading { opacity:.6; pointer-events:none; }
+
+/* Forgot password link */
+.auth-forgot {
+  text-align:right; margin-top:-2px; margin-bottom:2px;
+}
+.auth-forgot button {
+  background:none; border:none; cursor:pointer;
+  font-family:var(--font); font-size:.72rem; font-weight:600;
+  color:rgba(0,210,220,.75); padding:0; transition:color .15s;
+}
+.auth-forgot button:hover { color:rgba(0,210,220,1); text-decoration:underline; }
 .auth-divider { display:flex; align-items:center; gap:10px; }
 .auth-divider span { font-size:.7rem; color:var(--text3); white-space:nowrap; }
 .auth-divider::before,.auth-divider::after { content:''; flex:1; height:1px; background:var(--border); }
@@ -866,7 +897,7 @@ tr.ev-row-done .ev-title-cell { text-decoration:line-through; color:var(--text3)
 
 
 /* Desktop: hide FAB and mobile schedule card entirely */
-
+@media (min-width: 761px) {
   .mobile-schedule-card { display: none !important; }
 }
 /* ═══════════════════════════════════════════════════ */
@@ -1003,7 +1034,7 @@ tr.ev-row-done .ev-title-cell { text-decoration:line-through; color:var(--text3)
   width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px;
 }
 .an-v2-chart-body {
-  position:relative; width:100%; height:260px; padding:0 4px 4px;
+  position:relative; width:100%; height:280px; min-height:280px; padding:0 4px 4px; box-sizing:border-box;
 }
 .an-v2-chart-foot {
   display:flex; align-items:center; justify-content:center; gap:20px;
@@ -1854,9 +1885,9 @@ tr:hover .h-row-actions { opacity:1; }
   .an-v2-chart-range { font-size: .6rem  !important; }
   .an-v2-chart-legend { display: none !important; }
   #chartFullscreenBtn { display: none !important; }
-  /* Chart canvas: tall enough to be fully readable */
   .an-v2-chart-body {
-    height: 200px !important;
+    height: 240px !important;
+    min-height: 240px !important;
     padding: 0 2px 2px !important;
     flex-shrink: 0 !important;
   }
@@ -2217,6 +2248,272 @@ tr:hover .h-row-actions { opacity:1; }
 }
 /* ══════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════
+   MOBILE EVENT CARDS
+   ══════════════════════════════════════════════════════════════ */
+.ev-card-list { display: none; flex-direction: column; gap: 0; }
+.ev-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition: background .12s;
+}
+.ev-card:last-child { border-bottom: none; }
+.ev-card:active { background: var(--surface2); }
+.ev-card-left { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ev-card-body { flex: 1; min-width: 0; }
+.ev-card-title {
+  font-size: .82rem; font-weight: 700; color: var(--text1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ev-card-done .ev-card-title { text-decoration: line-through; color: var(--text3); }
+.ev-card-meta {
+  display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap;
+}
+.ev-card-date, .ev-card-time {
+  font-size: .65rem; color: var(--text3); font-weight: 600;
+}
+.ev-card-del {
+  width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); transition: all .15s;
+  border: none; background: transparent; cursor: pointer;
+}
+.ev-card-del:hover { background: rgba(239,68,68,.1); color: var(--danger); }
+.ev-card-empty {
+  padding: 24px 16px; text-align: center;
+  color: var(--text3); font-size: .78rem;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL RESPONSIVE FIXES
+   ══════════════════════════════════════════════════════════════ */
+
+/* Set rows — prevent overflow on small screens */
+.set-row { flex-wrap: wrap; }
+.set-row > *:last-child { flex-shrink: 0; }
+
+/* Settings buttons — always visible, never overflow */
+.set-btn {
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* Appearance swatches wrap on small screens */
+.set-accent-row { flex-wrap: wrap; gap: 8px; }
+
+/* Inputs fill available width on mobile */
+@media (max-width: 760px) {
+  /* ── Show card list, hide table on mobile ── */
+  .events-table-wrap { display: none !important; }
+  .ev-card-list { display: flex !important; }
+
+  /* ── Settings: rows stack vertically ── */
+  .set-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 14px 14px !important;
+  }
+  .set-row > button,
+  .set-row > label,
+  .set-row .set-btn,
+  .set-row .set-toggle {
+    align-self: flex-start;
+  }
+  .set-row-left { width: 100%; }
+
+  /* Avatar wrap stacks on mobile */
+  .set-avatar-wrap { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* Settings inputs full width */
+  .set-input, .set-select, .set-textarea {
+    width: 100% !important; box-sizing: border-box;
+  }
+
+  /* Settings slider full width */
+  .set-slider { width: 100% !important; max-width: 100% !important; }
+
+  /* Profile form fields */
+  .set-card input[type="text"],
+  .set-card input[type="email"],
+  .set-card input[type="password"],
+  .set-card textarea,
+  .set-card select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Accent color swatches wrap */
+  .set-accent-row { gap: 8px !important; flex-wrap: wrap !important; }
+  .set-accent-swatch { width: 28px !important; height: 28px !important; }
+
+  /* Radio rows wrap */
+  .set-radio-row { flex-wrap: wrap !important; gap: 6px !important; }
+  .set-radio-dot { font-size: .72rem !important; padding: 6px 11px !important; }
+
+  /* Buttons in danger zone stack */
+  .set-btn { white-space: nowrap; }
+
+  /* ── Topbar compress ── */
+  .topbar { padding: 0 12px !important; gap: 8px !important; }
+  .topbar-title { font-size: .9rem !important; }
+
+  /* ── Modal full-width ── */
+  .modal-box {
+    width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* ── Auth screens ── */
+  .auth-box { width: calc(100vw - 32px) !important; padding: 24px 18px !important; }
+
+  /* ── Content bottom padding for tab bar ── */
+  .content { padding-bottom: 80px !important; }
+
+  /* ── Event table tabs ── */
+  .events-tabs { gap: 4px !important; }
+  .ev-tab { font-size: .72rem !important; padding: 6px 10px !important; }
+
+  /* ── Settings card title ── */
+  .set-card-title { padding: 12px 14px 8px !important; }
+
+  /* ── Stats cards ── */
+  .stat-card { min-width: 0 !important; }
+
+  /* ── Set content section top padding fix ── */
+  .set-content .set-section.active {
+    padding: 0 14px 100px !important;
+  }
+
+  /* ── Fullscreen chart hide on mobile ── */
+  #chartFullscreenBtn { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TABLET (760px – 1024px)
+   ══════════════════════════════════════════════════════════════ */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .top-grid { grid-template-columns: 220px 1fr !important; }
+  .sched-col { display: none !important; }
+  .an-v2-stats { grid-template-columns: repeat(3, 1fr) !important; }
+  .an-v2-stats .an-v2-stat:nth-child(4),
+  .an-v2-stats .an-v2-stat:nth-child(5) { display: flex !important; }
+}
+/* ══════════════════════════════════════════════════════════════
+   IN-APP NOTIFICATION POPUPS
+   ══════════════════════════════════════════════════════════════ */
+.in-app-notif {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 999999;
+  min-width: 280px;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.1);
+  padding: 13px 14px 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  opacity: 0;
+  transform: translateX(calc(100% + 24px));
+  transition: opacity .3s cubic-bezier(.4,0,.2,1), transform .35s cubic-bezier(.34,1.3,.64,1);
+  cursor: pointer;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.in-app-notif.ian-show {
+  opacity: 1;
+  transform: translateX(0);
+}
+.in-app-notif.ian-hide {
+  opacity: 0;
+  transform: translateX(calc(100% + 24px));
+  transition: opacity .3s ease, transform .3s ease;
+}
+/* Stack multiple notifications */
+.in-app-notif + .in-app-notif { top: 98px; }
+.in-app-notif + .in-app-notif + .in-app-notif { top: 178px; }
+
+.ian-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(128,128,128,.08);
+}
+.ian-body { flex: 1; min-width: 0; }
+.ian-title {
+  font-size: .82rem; font-weight: 700; color: var(--text1);
+  line-height: 1.3; margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ian-msg {
+  font-size: .72rem; color: var(--text2); line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.ian-close {
+  width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3); background: none; border: none; cursor: pointer;
+  transition: all .12s; margin-top: 1px;
+}
+.ian-close:hover { background: rgba(239,68,68,.1); color: var(--danger); }
+.ian-progress {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: var(--border);
+}
+.ian-bar {
+  height: 100%; width: 100%;
+  animation: ianProgress linear forwards;
+  transform-origin: left;
+}
+@keyframes ianProgress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* Notification permission banner */
+.notif-perm-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(90deg, rgba(91,95,239,.12), rgba(139,92,246,.08));
+  border: 1px solid rgba(91,95,239,.25);
+  border-radius: var(--r-sm);
+  font-size: .78rem; color: var(--text1); font-weight: 600;
+  margin-bottom: 4px;
+}
+.notif-perm-banner svg { flex-shrink: 0; color: var(--indigo); }
+.notif-perm-banner-text { flex: 1; }
+.notif-perm-banner-sub { font-size: .68rem; color: var(--text3); font-weight: 400; margin-top: 1px; }
+.notif-enable-btn {
+  padding: 6px 13px; border-radius: 6px;
+  background: var(--indigo); color: #fff;
+  font-size: .74rem; font-weight: 700; font-family: var(--font);
+  border: none; cursor: pointer; flex-shrink: 0; transition: all .15s;
+}
+.notif-enable-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+@media (max-width: 760px) {
+  .in-app-notif {
+    top: auto;
+    bottom: 72px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    min-width: 0;
+    transform: translateY(calc(100% + 80px));
+  }
+  .in-app-notif.ian-show { transform: translateY(0); }
+  .in-app-notif.ian-hide { transform: translateY(calc(100% + 80px)); }
+  .in-app-notif + .in-app-notif { bottom: 152px; top: auto; }
+  .in-app-notif + .in-app-notif + .in-app-notif { display: none; }
+}
 </style>
 </head>
 <body>
@@ -2260,6 +2557,15 @@ tr:hover .h-row-actions { opacity:1; }
       </div>
       <button class="auth-btn" id="regSubmitBtn">Create Account</button>
       <div class="auth-divider"><span>or</span></div>
+      <button class="auth-google-btn" id="regGoogleBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
       <div class="auth-switch">Already have an account? <button id="goLoginBtn">Sign in</button></div>
     </div>
   </div>
@@ -2292,8 +2598,18 @@ tr:hover .h-row-actions { opacity:1; }
         </div>
         <span class="auth-err-msg" id="loginPwErr"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="loginPwErrTxt">Incorrect password.</span></span>
       </div>
+      <div class="auth-forgot"><button id="forgotPwBtn">Forgot password?</button></div>
       <button class="auth-btn" id="loginSubmitBtn">Sign In</button>
       <div class="auth-divider"><span>or</span></div>
+      <button class="auth-google-btn" id="loginGoogleBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
       <div class="auth-switch">Don't have an account? <button id="goRegBtn">Sign up</button></div>
     </div>
   </div>
@@ -2451,6 +2767,8 @@ tr:hover .h-row-actions { opacity:1; }
                 </tbody>
               </table>
             </div>
+            <!-- Mobile-only card list -->
+            <div id="evCardList" class="ev-card-list"></div>
           </div>
         </div>
 
@@ -2839,7 +3157,7 @@ tr:hover .h-row-actions { opacity:1; }
           <div class="set-card">
             <div class="set-card-title">Profile Picture</div>
             <div class="set-avatar-wrap">
-              <div class="set-avatar" id="setAvatar" onclick="$('setAvatarInput').click()">
+              <div class="set-avatar" id="setAvatar" style="cursor:pointer;" onclick="document.getElementById('setAvatarInput').click()">
                 <span id="setAvatarInitials">?</span>
                 <img id="setAvatarImg" style="display:none;" alt="avatar"/>
                 <div class="set-avatar-overlay">
@@ -2978,6 +3296,16 @@ tr:hover .h-row-actions { opacity:1; }
             </div>
           </div>
 
+          <!-- Permission status banner -->
+          <div class="notif-perm-banner" id="notifPermBanner">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <div class="notif-perm-banner-text">
+              <div id="notifPermLabel">Enable Push Notifications</div>
+              <div class="notif-perm-banner-sub" id="notifPermSub">Get real-time alerts for events, tasks &amp; habit streaks</div>
+            </div>
+            <button class="notif-enable-btn" id="notifEnableBtn" onclick="enablePushNotifications()">Enable</button>
+          </div>
+
           <div class="set-card">
             <div class="set-card-title">Channels</div>
             <div class="set-row">
@@ -2997,9 +3325,16 @@ tr:hover .h-row-actions { opacity:1; }
             <div class="set-row">
               <div class="set-row-left">
                 <div class="set-row-label">Daily Task Reminders</div>
-                <div class="set-row-desc">Get a morning digest of your tasks for the day</div>
+                <div class="set-row-desc">Morning digest at 8 AM with today's tasks and events</div>
               </div>
               <label class="set-toggle"><input type="checkbox" id="notifDaily" checked/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
+            </div>
+            <div class="set-row">
+              <div class="set-row-left">
+                <div class="set-row-label">Habit Streak Alerts</div>
+                <div class="set-row-desc">Celebrate milestones at 3, 7, 14 &amp; 30-day streaks</div>
+              </div>
+              <label class="set-toggle"><input type="checkbox" id="notifStreaks" checked/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
             </div>
           </div>
 
@@ -3025,6 +3360,17 @@ tr:hover .h-row-actions { opacity:1; }
                 <div class="set-row-desc">Get notified 1 hour before each event starts</div>
               </div>
               <div class="set-radio-dot active" data-rtime="60"></div>
+            </div>
+          </div>
+
+          <div class="set-card">
+            <div class="set-card-title">Test Notifications</div>
+            <div class="set-row">
+              <div class="set-row-left">
+                <div class="set-row-label">Send Test Notification</div>
+                <div class="set-row-desc">Preview what notifications look like</div>
+              </div>
+              <button class="set-btn set-btn-ghost" onclick="sendTestNotification()">Test</button>
             </div>
           </div>
         </div>
@@ -3348,8 +3694,16 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getMessaging,
+  getToken,
+  onMessage
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 import {
   getFirestore,
   doc,
@@ -3376,6 +3730,287 @@ const _fbApp      = initializeApp(firebaseConfig);
 const _fbAnalytics= getAnalytics(_fbApp);
 const _fbAuth     = getAuth(_fbApp);
 const _db         = getFirestore(_fbApp);
+
+/* ══════════════════════════════════════════════════════════════
+   FCM + NOTIFICATION SYSTEM
+   ══════════════════════════════════════════════════════════════ */
+const VAPID_KEY = 'BDFZpA6UEqClsQXroImH5Sq6eenGtpSj7QOAdX5b57c8Hzl2YV44mpaHKFBPdoxHUhhGTvbkjOAVo9aqL4sxeVs';
+let _messaging = null;
+let _notifPermission = Notification.permission; // 'default' | 'granted' | 'denied'
+let _reminderTimers = []; // active setTimeout handles
+let _dailyReminderTimer = null;
+
+/* ── Register FCM service worker via Blob URL ── */
+async function registerFCMServiceWorker() {
+  if (!('serviceWorker' in navigator)) return null;
+  const swCode = `
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+firebase.initializeApp({
+  apiKey: "AIzaSyDT7wpp_wdOZIsOO46dIniFWqSUZ4Y_-VE",
+  authDomain: "do-to-7c081.firebaseapp.com",
+  projectId: "do-to-7c081",
+  storageBucket: "do-to-7c081.firebasestorage.app",
+  messagingSenderId: "649392929409",
+  appId: "1:649392929409:web:3a617616d16ec773b42b80",
+  measurementId: "G-54606WG7BT"
+});
+const messaging = firebase.messaging();
+messaging.onBackgroundMessage(payload => {
+  const { title = 'Hay Bro', body = '' } = payload.notification || {};
+  self.registration.showNotification(title, {
+    body,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: payload.data?.tag || 'haybro-notif',
+    data: payload.data || {}
+  });
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.openWindow('/'));
+});
+`;
+  try {
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    const reg = await navigator.serviceWorker.register(swUrl, { scope: '/' });
+    await navigator.serviceWorker.ready;
+    return reg;
+  } catch(e) {
+    console.warn('FCM SW registration failed:', e);
+    return null;
+  }
+}
+
+/* ── Request notification permission + get FCM token ── */
+async function initFCMMessaging() {
+  if (!('Notification' in window)) return;
+  try {
+    const swReg = await registerFCMServiceWorker();
+    _messaging = getMessaging(_fbApp);
+
+    // Listen to foreground messages
+    onMessage(_messaging, payload => {
+      const title = payload.notification?.title || 'Hay Bro';
+      const body  = payload.notification?.body  || '';
+      showInAppNotification(title, body, payload.data?.type || 'info');
+    });
+
+    // Get FCM token and save to Firestore for the current user
+    if (_notifPermission === 'granted') {
+      await saveFCMToken(swReg);
+    }
+  } catch(e) {
+    console.warn('FCM init failed:', e);
+  }
+}
+
+async function requestAndInitNotifications() {
+  if (!('Notification' in window)) {
+    showToast('This browser does not support notifications', 'var(--amber)');
+    return false;
+  }
+  if (_notifPermission === 'denied') {
+    showToast('Notifications blocked — please enable them in browser settings', 'var(--amber)');
+    return false;
+  }
+  if (_notifPermission !== 'granted') {
+    const result = await Notification.requestPermission();
+    _notifPermission = result;
+    if (result !== 'granted') {
+      showToast('Notification permission denied', 'var(--amber)');
+      return false;
+    }
+  }
+  await initFCMMessaging();
+  showToast('✓ Push notifications enabled');
+  return true;
+}
+
+async function saveFCMToken(swReg) {
+  const user = _fbAuth.currentUser;
+  if (!user || !_messaging) return;
+  try {
+    const opts = { vapidKey: VAPID_KEY };
+    if (swReg) opts.serviceWorkerRegistration = swReg;
+    const token = await getToken(_messaging, opts);
+    if (token) {
+      await setDoc(
+        doc(_db, 'users', user.uid, 'fcmTokens', token.slice(0,20)),
+        { token, updatedAt: Date.now() },
+        { merge: true }
+      );
+    }
+  } catch(e) {
+    console.warn('FCM token error:', e);
+  }
+}
+
+/* ── In-app popup notification ── */
+let _notifQueue = [];
+let _notifShowing = false;
+
+function showInAppNotification(title, body, type = 'info', duration = 5000) {
+  _notifQueue.push({ title, body, type, duration });
+  if (!_notifShowing) drainNotifQueue();
+}
+
+function drainNotifQueue() {
+  if (!_notifQueue.length) { _notifShowing = false; return; }
+  _notifShowing = true;
+  const { title, body, type, duration } = _notifQueue.shift();
+
+  const icons = {
+    event:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    task:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    habit:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+    reminder:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+    streak:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+    info:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+  };
+  const colors = {
+    event: 'var(--indigo)', task: 'var(--green)', habit: 'var(--violet)',
+    reminder: 'var(--amber)', streak: '#F97316', info: 'var(--sky)'
+  };
+
+  const el = document.createElement('div');
+  el.className = 'in-app-notif';
+  el.setAttribute('role','alert');
+  el.innerHTML = `
+    <div class="ian-icon" style="color:${colors[type]||colors.info}">${icons[type]||icons.info}</div>
+    <div class="ian-body">
+      <div class="ian-title">${title}</div>
+      ${body ? `<div class="ian-msg">${body}</div>` : ''}
+    </div>
+    <button class="ian-close" aria-label="Dismiss">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="ian-progress"><div class="ian-bar" style="background:${colors[type]||colors.info};animation-duration:${duration}ms;"></div></div>
+  `;
+
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('ian-show'));
+
+  const dismiss = () => {
+    el.classList.remove('ian-show');
+    el.classList.add('ian-hide');
+    setTimeout(() => { el.remove(); setTimeout(drainNotifQueue, 200); }, 350);
+  };
+
+  el.querySelector('.ian-close').addEventListener('click', dismiss);
+  const timer = setTimeout(dismiss, duration + 300);
+  el.addEventListener('click', e => {
+    if (e.target.closest('.ian-close')) return;
+    clearTimeout(timer); dismiss();
+  });
+}
+
+/* ── Native OS notification fallback ── */
+function sendNativeNotification(title, body, tag = 'haybro') {
+  if (_notifPermission !== 'granted') return;
+  try {
+    new Notification(title, {
+      body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 26"><path d="M25 13 C25 13 18 2 10 2 C4 2 1 7 1 13 C1 19 4 24 10 24 C18 24 25 13 25 13 C25 13 32 2 40 2 C46 2 49 7 49 13 C49 19 46 24 40 24 C32 24 25 13 25 13 Z" fill="none" stroke="%235B5FEF" stroke-width="3.5" stroke-linecap="round"/></svg>',
+      tag,
+      requireInteraction: false
+    });
+  } catch(e) {}
+}
+
+/* ── Notify helper: shows both in-app popup + native OS notification ── */
+function notify(title, body, type = 'info', tag = 'haybro') {
+  showInAppNotification(title, body, type);
+  if (document.hidden) sendNativeNotification(title, body, tag);
+}
+
+/* ── Schedule event reminders ── */
+function scheduleEventReminders() {
+  // Clear existing timers
+  _reminderTimers.forEach(t => clearTimeout(t));
+  _reminderTimers = [];
+
+  const s = getAppSettings();
+  const pushEnabled = s.notifPush !== false;
+  if (!pushEnabled || _notifPermission !== 'granted') return;
+
+  const reminderMins = s.reminderTime || 60;
+  const now = Date.now();
+  const todayKey = dKey(new Date());
+
+  Object.keys(events).forEach(dk => {
+    (events[dk] || []).forEach(ev => {
+      if (ev.done) return;
+      const [h, m] = ev.start.split(':').map(Number);
+      const evDate = new Date(dk + 'T00:00:00');
+      evDate.setHours(h, m, 0, 0);
+      const evTime = evDate.getTime();
+      const reminderTime = evTime - reminderMins * 60000;
+
+      if (reminderTime > now) {
+        const delay = reminderTime - now;
+        const t = setTimeout(() => {
+          const label = reminderMins === 60 ? '1 hour' : `${reminderMins} minutes`;
+          notify(
+            `⏰ Upcoming: ${ev.title}`,
+            `Starting in ${label} at ${fmt12(ev.start)}`,
+            'reminder',
+            `remind-${ev.id}`
+          );
+          sendNativeNotification(`⏰ ${ev.title}`, `Starting in ${reminderMins === 60 ? '1 hour' : reminderMins + ' min'} at ${fmt12(ev.start)}`, `remind-${ev.id}`);
+        }, delay);
+        _reminderTimers.push(t);
+      }
+    });
+  });
+}
+
+/* ── Daily task reminder at 8 AM ── */
+function scheduleDailyReminder() {
+  if (_dailyReminderTimer) clearTimeout(_dailyReminderTimer);
+  const s = getAppSettings();
+  if (!s.notifDaily || _notifPermission !== 'granted') return;
+
+  const now = new Date();
+  const next8am = new Date(now);
+  next8am.setHours(8, 0, 0, 0);
+  if (next8am <= now) next8am.setDate(next8am.getDate() + 1);
+  const delay = next8am - now;
+
+  _dailyReminderTimer = setTimeout(async () => {
+    const todayKey = dKey(new Date());
+    const pending = (tasks || []).filter(t => !t.done).length;
+    const evCount = (events[todayKey] || []).filter(e => !e.done).length;
+    const parts = [];
+    if (pending) parts.push(`${pending} task${pending !== 1 ? 's' : ''}`);
+    if (evCount) parts.push(`${evCount} event${evCount !== 1 ? 's' : ''}`);
+    const body = parts.length
+      ? `You have ${parts.join(' and ')} scheduled for today`
+      : 'No tasks or events scheduled — enjoy your day!';
+    notify('🌅 Good morning!', body, 'task', 'daily-reminder');
+    sendNativeNotification('🌅 Good morning — Hay Bro', body, 'daily-reminder');
+    scheduleDailyReminder(); // reschedule for tomorrow
+  }, delay);
+}
+
+/* ── Streak milestone notification ── */
+async function checkStreakMilestones() {
+  const s = getAppSettings();
+  if (!s.notifPush || _notifPermission !== 'granted') return;
+  const habits = await loadHabits();
+  habits.forEach(h => {
+    const { cur } = calcStreaks(h);
+    if (cur > 0 && (cur === 3 || cur === 7 || cur === 14 || cur === 30 || cur % 30 === 0)) {
+      notify(
+        `🔥 ${cur}-Day Streak!`,
+        `You're on a ${cur}-day streak with "${h.emoji} ${h.name}" — keep it up!`,
+        'streak',
+        `streak-${h.id}-${cur}`
+      );
+    }
+  });
+}
 
 /* ── Firebase Auth: check login state & redirect ── */
 function checkAuthAndRedirect() {
@@ -3625,14 +4260,10 @@ function showPage(page) {
   if(page==='analytics'){
     if(ap){ ap.style.display='flex'; }
     if(ct) ct.style.display='none';
-    // On mobile, defer two frames so flex layout settles before canvas measures
-    if(isMobile){
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){ renderAnalytics(); });
-      });
-    } else {
-      renderAnalytics();
-    }
+    // Always defer two frames so flex layout fully settles before canvas measures
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ renderAnalytics(); });
+    });
     if(!isMobile) applySectionFocus([]);
   } else if(page==='settings'){
     if(sp){ sp.classList.add('active'); }
@@ -3967,9 +4598,21 @@ async function renderAnalytics(){
 function drawAnalyticsChart(canvasId, data, labels){
   const canvas=document.getElementById(canvasId);
   if(!canvas) return;
+
+  // If the canvas has no layout dimensions yet, wait one frame and retry
+  const parent = canvas.parentElement;
+  const parentH = parent ? parent.offsetHeight : 0;
+  const parentW = parent ? parent.offsetWidth : 0;
+  if(parentH < 10 || parentW < 10){
+    requestAnimationFrame(()=>drawAnalyticsChart(canvasId, data, labels));
+    return;
+  }
+
   const dpr=window.devicePixelRatio||1;
-  const W=canvas.offsetWidth||700, H=canvas.offsetHeight||260;
+  const W=parentW||canvas.offsetWidth||700;
+  const H=parentH||canvas.offsetHeight||280;
   canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
   const ctx=canvas.getContext('2d');
   ctx.scale(dpr,dpr);
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -4110,7 +4753,18 @@ document.querySelectorAll('.an-view-tab').forEach(btn=>{
 });
 
 // Auto-refresh charts on window resize
-window.addEventListener('resize',()=>{ if(currentPage==='analytics') renderAnalytics(); });
+window.addEventListener('resize',()=>{
+  if(currentPage==='analytics'){
+    requestAnimationFrame(()=> requestAnimationFrame(()=> renderAnalytics()));
+  }
+  // Also redraw inline chart if only data changed
+  if(_fsLastData.length){
+    const ov = document.getElementById('chartFullscreenOv');
+    if(ov && ov.style.display !== 'none'){
+      requestAnimationFrame(()=> requestAnimationFrame(()=> _drawAnalyticsChartOrig('activityChartFS', _fsLastData, _fsLastLabels)));
+    }
+  }
+});
 
 /* ── Midnight seal: when the clock rolls over, seal pending items as missed ── */
 (function scheduleMidnightSeal(){
@@ -4143,37 +4797,73 @@ window.switchEvTab=function(mode){
   renderEvTable();
 };
 function renderEvTable() {
+  const isMobile = window.innerWidth <= 760;
   const tbody=$('evTableBody');
+  const evList=$('evCardList'); // mobile card container
   let rows=[];
   if(evTabMode==='today'){
-    const dk=dKey(new Date()); // always TODAY, not selDate
+    const dk=dKey(new Date());
     rows=(events[dk]||[]).map(ev=>({ev,dk}));
   } else {
     Object.keys(events).sort().forEach(dk=>(events[dk]||[]).forEach(ev=>rows.push({ev,dk})));
   }
-  if(!rows.length){
-    tbody.innerHTML=`<tr class="ev-empty-row"><td colspan="7">No events — add one from the Schedule →</td></tr>`;
-    return;
+
+  // ── Desktop table ──
+  if(tbody){
+    if(!rows.length){
+      tbody.innerHTML=`<tr class="ev-empty-row"><td colspan="7">No events — add one from the Schedule →</td></tr>`;
+    } else {
+      tbody.innerHTML=rows.map(({ev,dk})=>{
+        const d=new Date(dk+'T00:00:00');
+        const dateStr=`${MONTHS_S[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+        const isDone=!!ev.done;
+        const statusBadge=isDone
+          ? `<span class="ev-status-badge ev-status-done">✓ Done</span>`
+          : `<span class="ev-status-badge ev-status-progress">● Active</span>`;
+        return `<tr class="${isDone?'ev-row-done':''}">
+          <td class="ev-check-wrap"><input type="checkbox" class="ev-check" ${isDone?'checked':''} onchange="toggleEventDone('${ev.id}','${dk}',this.checked)"/></td>
+          <td style="padding:9px 4px;"><span class="ev-dot" style="background:${ev.color}"></span></td>
+          <td><div class="ev-title-cell">${esc(ev.title)}</div></td>
+          <td style="white-space:nowrap;color:var(--text3);">${dateStr}</td>
+          <td style="white-space:nowrap;color:var(--text3);font-family:var(--mono);font-size:.68rem;">${fmt12(ev.start)}</td>
+          <td>${statusBadge}</td>
+          <td style="text-align:right;padding-right:10px;"><div class="ev-actions">
+            <button class="ev-del-btn" onclick="deleteEvent('${ev.id}','${dk}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
   }
-  tbody.innerHTML=rows.map(({ev,dk})=>{
-    const d=new Date(dk+'T00:00:00');
-    const dateStr=`${MONTHS_S[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-    const isDone=!!ev.done;
-    const statusBadge=isDone
-      ? `<span class="ev-status-badge ev-status-done">✓ Completed</span>`
-      : `<span class="ev-status-badge ev-status-progress">● In Progress</span>`;
-    return `<tr class="${isDone?'ev-row-done':''}">
-      <td class="ev-check-wrap"><input type="checkbox" class="ev-check" ${isDone?'checked':''} onchange="toggleEventDone('${ev.id}','${dk}',this.checked)"/></td>
-      <td style="padding:9px 4px;"><span class="ev-dot" style="background:${ev.color}"></span></td>
-      <td><div class="ev-title-cell">${esc(ev.title)}</div></td>
-      <td style="white-space:nowrap;color:var(--text3);">${dateStr}</td>
-      <td style="white-space:nowrap;color:var(--text3);font-family:var(--mono);font-size:.68rem;">${fmt12(ev.start)}</td>
-      <td>${statusBadge}</td>
-      <td style="text-align:right;padding-right:10px;"><div class="ev-actions">
-        <button class="ev-del-btn" onclick="deleteEvent('${ev.id}','${dk}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
-      </div></td>
-    </tr>`;
-  }).join('');
+
+  // ── Mobile card list ──
+  if(evList){
+    if(!rows.length){
+      evList.innerHTML=`<div class="ev-card-empty">No events — add one from the Schedule above</div>`;
+    } else {
+      evList.innerHTML=rows.map(({ev,dk})=>{
+        const d=new Date(dk+'T00:00:00');
+        const dateStr=`${MONTHS_S[d.getMonth()]} ${d.getDate()}`;
+        const isDone=!!ev.done;
+        return `<div class="ev-card ${isDone?'ev-card-done':''}">
+          <div class="ev-card-left">
+            <input type="checkbox" class="ev-check" ${isDone?'checked':''} onchange="toggleEventDone('${ev.id}','${dk}',this.checked)"/>
+            <span class="ev-dot" style="background:${ev.color};flex-shrink:0;"></span>
+          </div>
+          <div class="ev-card-body">
+            <div class="ev-card-title">${esc(ev.title)}</div>
+            <div class="ev-card-meta">
+              <span class="ev-card-date">${dateStr}</span>
+              <span class="ev-card-time">${fmt12(ev.start)}</span>
+              ${isDone?'<span class="ev-status-badge ev-status-done" style="font-size:.55rem;padding:1px 5px;">✓ Done</span>':'<span class="ev-status-badge ev-status-progress" style="font-size:.55rem;padding:1px 5px;">● Active</span>'}
+            </div>
+          </div>
+          <button class="ev-card-del" onclick="deleteEvent('${ev.id}','${dk}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+    }
+  }
 }
 window.deleteEvent=async function(id,dk){
   if(!events[dk]) return;
@@ -4294,6 +4984,9 @@ $('saveEvBtn').addEventListener('click', async ()=>{
   const savedDate = new Date(dk+'T00:00:00');
   selDate = savedDate;
   await saveEvents(); closeEvModal(); renderTimeline(); renderCalendar(); renderEvTable(); updateStats(); await snapshotAnalytics(); if(currentPage==='analytics') renderAnalytics();
+  // Notify + reschedule reminders
+  notify(`📅 Event Added`, `"${title}" on ${fmt12(start)}`, 'event', `ev-add-${newEv.id}`);
+  scheduleEventReminders();
 });
 
 /* ── EDIT TASK MODAL ── */
@@ -4488,6 +5181,7 @@ async function addHabit(){
   await snapshotAnalytics();
   if(currentPage==='analytics') renderAnalytics();
   renderHabitTable();
+  notify(`✅ Habit Started`, `"${emoji} ${cleanName}" added — ${targetDays}-day goal begins today!`, 'habit', `habit-add-${newHabit.id}`);
 }
 $('addHabitBtn').addEventListener('click',addHabit);
 $('habitInput').addEventListener('keydown',e=>{ if(e.key==='Enter') addHabit(); });
@@ -4641,6 +5335,63 @@ $('logoutBtn').addEventListener('click', async ()=>{
 $('goRegBtn').addEventListener('click',showRegister);
 $('goLoginBtn').addEventListener('click',showLogin);
 
+/* ── Shared Google sign-in handler ── */
+async function handleGoogleSignIn(btn) {
+  if(btn) btn.classList.add('loading');
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const result = await signInWithPopup(_fbAuth, provider);
+    const user = result.user;
+    // Create profile doc if it doesn't exist yet (new Google user)
+    const profileRef = userDocRef(user.uid, 'profile', 'info');
+    const profileSnap = await getDoc(profileRef);
+    if (!profileSnap.exists()) {
+      await setDoc(profileRef, {
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        username: '',
+        bio: ''
+      });
+    }
+    // onAuthStateChanged will handle dashboard display
+  } catch(err) {
+    if(btn) btn.classList.remove('loading');
+    if(err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+    const msg = err.code === 'auth/popup-blocked'
+      ? 'Pop-up was blocked — please allow pop-ups for this site'
+      : (err.message || 'Google sign-in failed');
+    showToast(msg, 'var(--danger)');
+  }
+}
+
+/* ── Wire Google buttons ── */
+const loginGoogleBtn = $('loginGoogleBtn');
+const regGoogleBtn   = $('regGoogleBtn');
+if(loginGoogleBtn) loginGoogleBtn.addEventListener('click', () => handleGoogleSignIn(loginGoogleBtn));
+if(regGoogleBtn)   regGoogleBtn.addEventListener('click',   () => handleGoogleSignIn(regGoogleBtn));
+
+/* ── Forgot Password ── */
+$('forgotPwBtn').addEventListener('click', async () => {
+  // Pre-fill from login email field if available
+  const prefill = ($('loginEmail')?.value || '').trim();
+  const email = window.prompt('Enter your account email to receive a reset link:', prefill);
+  if (!email) return;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    showToast('Please enter a valid email address', 'var(--danger)');
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(_fbAuth, email.trim());
+    showToast('✓ Password reset email sent — check your inbox');
+  } catch(err) {
+    const msg = err.code === 'auth/user-not-found'
+      ? 'No account found with that email'
+      : (err.message || 'Could not send reset email');
+    showToast(msg, 'var(--danger)');
+  }
+});
+
 /* ── DELETE CONFIRM MODAL ── */
 let _deleteCallback = null;
 function showDeleteConfirm(title, msg, onConfirm){
@@ -4699,7 +5450,8 @@ function initFullscreenChart(){
     if(t && ft) ft.textContent = t.textContent;
     if(r && fr) fr.textContent = r.textContent;
     ov.style.display = 'flex';
-    requestAnimationFrame(()=> _drawAnalyticsChartOrig('activityChartFS', _fsLastData, _fsLastLabels));
+    // Double rAF: first frame the overlay becomes flex, second frame layout is settled
+    requestAnimationFrame(()=> requestAnimationFrame(()=> _drawAnalyticsChartOrig('activityChartFS', _fsLastData, _fsLastLabels)));
   });
 
   document.getElementById('chartFullscreenClose').addEventListener('click', ()=>{
@@ -4767,8 +5519,12 @@ function loadSettingsPage(){
   if($('notifEmail')) $('notifEmail').checked = s.notifEmail !== false;
   if($('notifPush')) $('notifPush').checked = !!s.notifPush;
   if($('notifDaily')) $('notifDaily').checked = s.notifDaily !== false;
+  if($('notifStreaks')) $('notifStreaks').checked = s.notifStreaks !== false;
   const rTime = s.reminderTime || 60;
   setReminderTime(rTime, true);
+  // Update permission banner and wire streak toggle (safe to call anytime)
+  updateNotifPermBanner();
+  wireNotifStreaksToggle();
 
   // Calendar
   if($('setTimezone')) $('setTimezone').value = s.timezone || 'auto';
@@ -4785,8 +5541,12 @@ function loadSettingsPage(){
   if(btn) btn.textContent = is2fa ? 'Disable 2FA' : 'Enable 2FA';
 }
 
-/* ── Settings nav tabs ── */
-document.addEventListener('DOMContentLoaded', ()=>{
+/* ── Settings nav tabs — wired after module loads (not DOMContentLoaded) ── */
+let _settingsNavInited = false;
+function initSettingsNav(){
+  if(_settingsNavInited) return; // only wire once
+  _settingsNavInited = true;
+
   qsa('.set-nav-item').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       qsa('.set-nav-item').forEach(b=>b.classList.remove('active'));
@@ -4802,51 +5562,66 @@ document.addEventListener('DOMContentLoaded', ()=>{
         const backBtn = $('mobSetBack');
         if(sp) sp.classList.add('mob-section-open');
         if(backBtn){
-          // CSS shows back button via .mob-section-open parent class
-          // Update back button label to show current section name
-          const label = btn.textContent.trim();
           backBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Settings';
         }
       }
     });
   });
 
-  // Mobile back button — slide back to menu list
+  // Mobile back button
   const mobSetBack = $('mobSetBack');
   if(mobSetBack){
     mobSetBack.addEventListener('click', ()=>{
       const sp = $('settingsPage');
       if(sp) sp.classList.remove('mob-section-open');
-      mobSetBack.style.display = 'none';
     });
   }
 
-  // Avatar upload
+  // Notification toggles — save on change
+  ['notifEmail','notifPush','notifDaily'].forEach(id=>{
+    const el = $(id);
+    if(el){
+      el.addEventListener('change', async ()=>{
+        const s = getAppSettings();
+        s[id] = el.checked;
+        await saveAppSettings(s);
+        showToast('Notification preferences saved ✓');
+      });
+    }
+  });
+
+  // Avatar — clicking avatar or upload button opens file picker
+  const setAvatar = $('setAvatar');
+  if(setAvatar){
+    setAvatar.onclick = ()=>{ const inp=$('setAvatarInput'); if(inp) inp.click(); };
+  }
+
+  // Avatar upload handler
   const avatarInput = $('setAvatarInput');
   if(avatarInput){
-    avatarInput.addEventListener('change', function(){
+    avatarInput.addEventListener('change', async function(){
       const file = this.files[0]; if(!file) return;
       if(file.size > 2*1024*1024){ showToast('Image must be under 2MB', 'var(--danger)'); return; }
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = async e => {
         const url = e.target.result;
-        const imgEl = $('setAvatarImg');
-        const initEl = $('setAvatarInitials');
-        if(imgEl){ imgEl.src=url; imgEl.style.display='block'; }
-        if(initEl) initEl.style.display='none';
-        const s = getAppSettings(); s.avatarDataUrl = url; saveAppSettings(s);
+        // Update all avatar previews
+        [$('setAvatarImg'), $('sbAvImg'), $('mobMoreAvImg')].forEach(img=>{
+          if(img){ img.src=url; img.style.display='block'; }
+        });
+        [$('setAvatarInitials'), $('sbAvInitials'), $('mobMoreAvInitials')].forEach(el=>{
+          if(el) el.style.display='none';
+        });
+        // Persist to Firestore via settings
+        const s = getAppSettings(); s.avatarDataUrl = url;
+        await saveAppSettings(s);
         syncSidebarAvatar();
-        // Also update settings page avatar preview
-        const setAvatarImg2 = $('setAvatarImg');
-        const setInitials2 = $('setAvatarInitials');
-        if(setAvatarImg2){ setAvatarImg2.src=url; setAvatarImg2.style.display='block'; }
-        if(setInitials2) setInitials2.style.display='none';
         showToast('Profile picture updated ✓');
       };
       reader.readAsDataURL(file);
     });
   }
-});
+}
 
 /* ── Profile save ── */
 async function saveProfileSettings(){
@@ -4918,9 +5693,9 @@ async function changePassword(){
 }
 
 /* ── 2FA toggle ── */
-function toggle2FA(){
+async function toggle2FA(){
   const s=getAppSettings();
-  s.twoFA=!s.twoFA; saveAppSettings(s);
+  s.twoFA=!s.twoFA; await saveAppSettings(s);
   const is2fa=s.twoFA;
   const dot=$('set2faDot'),txt=$('set2faStatusTxt'),btn=$('set2faBtn');
   if(dot) dot.style.background=is2fa?'var(--green)':'var(--text3)';
@@ -4938,60 +5713,70 @@ function logoutAllDevices(){
 }
 
 /* ── Reminder time ── */
-function setReminderTime(mins, silent){
+async function setReminderTime(mins, silent){
   qsa('.set-radio-dot').forEach(d=>{
     d.classList.toggle('active', parseInt(d.dataset.rtime)===mins);
   });
   if(!silent){
-    const s=getAppSettings(); s.reminderTime=mins; saveAppSettings(s);
+    const s=getAppSettings(); s.reminderTime=mins; await saveAppSettings(s);
     showToast('Reminder set to '+( mins===60?'1 hour':mins+' minutes')+' before ✓');
   }
 }
 
 /* ── Theme from settings toggle ── */
-function applyThemeFromSettings(dark){
+async function applyThemeFromSettings(dark){
   document.documentElement.setAttribute('data-theme', dark?'dark':'light');
-  const s=getAppSettings(); s.dark=dark; saveAppSettings(s);
-  // keep sidebar theme btn in sync
-  const themeBtn=$('themeBtn');
-  if(themeBtn){
-    themeBtn.querySelector && themeBtn.querySelectorAll && void 0; // no-op
+  // Sync sidebar theme button label
+  const lbl=$('themeBtnLbl');
+  if(lbl) lbl.textContent = dark ? 'Light Mode' : 'Dark Mode';
+  const icon=$('themeIcon');
+  if(icon){
+    if(dark){
+      icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    } else {
+      icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    }
   }
+  const s=getAppSettings(); s.dark=dark;
+  await saveAppSettings(s);
+  if(currentPage==='analytics') setTimeout(renderAnalytics,50);
 }
 
 /* ── Compact mode ── */
-function applyCompactMode(on){
+async function applyCompactMode(on){
   document.documentElement.classList.toggle('compact', on);
-  const s=getAppSettings(); s.compact=on; saveAppSettings(s);
+  const s=getAppSettings(); s.compact=on;
+  await saveAppSettings(s);
 }
 
 /* ── Accent color ── */
-function setAccentColor(hex, el){
+async function setAccentColor(hex, el){
   qsa('.set-accent-swatch').forEach(s=>s.classList.remove('active'));
   if(el) el.classList.add('active');
   document.documentElement.style.setProperty('--indigo', hex);
-  // Recalculate indigo-t
   const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
   document.documentElement.style.setProperty('--indigo-t', `rgba(${r},${g},${b},.1)`);
-  const s=getAppSettings(); s.accentColor=hex; saveAppSettings(s);
+  const s=getAppSettings(); s.accentColor=hex;
+  await saveAppSettings(s);
   showToast('Accent color updated ✓');
 }
 
 /* ── Font size ── */
-function applyFontSize(val){
+async function applyFontSize(val){
   const fsVal=$('fontSizeVal'); if(fsVal) fsVal.textContent=val+'px';
   document.documentElement.style.fontSize=val+'px';
-  const s=getAppSettings(); s.fontSize=parseInt(val); saveAppSettings(s);
+  const s=getAppSettings(); s.fontSize=parseInt(val);
+  await saveAppSettings(s);
 }
 
 /* ── Calendar settings ── */
-function saveCalendarSettings(){
+async function saveCalendarSettings(){
   const s=getAppSettings();
   s.timezone=$('setTimezone')?$('setTimezone').value:'auto';
   s.timeFormat=$('setTimeFormat')?$('setTimeFormat').value:'12';
   s.weekStart=$('setWeekStart')?parseInt($('setWeekStart').value):0;
   s.eventDuration=$('setEventDuration')?parseInt($('setEventDuration').value):60;
-  saveAppSettings(s);
+  await saveAppSettings(s);
   showToast('Calendar settings saved ✓');
 }
 
@@ -5114,7 +5899,15 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     _ledgerCache = null;
 
     showDashboard(_currentSession);
+    initSettingsNav();
     await init();
+
+    // Bootstrap notifications if already permitted
+    if (Notification.permission === 'granted') {
+      await initFCMMessaging();
+      scheduleEventReminders();
+      scheduleDailyReminder();
+    }
     applySectionFocus('all');
   });
 });
@@ -5254,6 +6047,121 @@ document.addEventListener('DOMContentLoaded', function() {
   /* Initial state */
   syncTabs('overview');
 });
+
+/* ══════════════════════════════════════════════════════
+   WINDOW EXPORTS — expose module-scoped functions to
+   inline HTML event attributes (onclick, onchange, etc.)
+   ══════════════════════════════════════════════════════ */
+window.saveProfileSettings = saveProfileSettings;
+window.changePassword      = changePassword;
+window.confirmDeleteAccount= confirmDeleteAccount;
+window.toggle2FA           = toggle2FA;
+window.logoutAllDevices    = logoutAllDevices;
+window.setReminderTime     = setReminderTime;
+window.saveCalendarSettings= saveCalendarSettings;
+window.exportData          = exportData;
+window.clearCompletedTasks = clearCompletedTasks;
+window.clearAllEvents      = clearAllEvents;
+window.confirmResetAll     = confirmResetAll;
+window.applyThemeFromSettings = applyThemeFromSettings;
+window.applyCompactMode    = applyCompactMode;
+window.applyFontSize       = applyFontSize;
+window.setAccentColor      = setAccentColor;
+window.toggleEventDone     = toggleEventDone;
+window.deleteEvent         = deleteEvent;
+window.deleteHabit         = deleteHabit;
+window.openEditHabit       = openEditHabit;
+
+/* ── Notification helpers exposed to HTML ── */
+window.enablePushNotifications = async function() {
+  const btn = $('notifEnableBtn');
+  if (btn) { btn.textContent = 'Enabling…'; btn.disabled = true; }
+  const granted = await requestAndInitNotifications();
+  if (granted) {
+    const s = getAppSettings(); s.notifPush = true;
+    await saveAppSettings(s);
+    const notifPushEl = $('notifPush');
+    if (notifPushEl) notifPushEl.checked = true;
+    scheduleEventReminders();
+    scheduleDailyReminder();
+  }
+  updateNotifPermBanner();
+  if (btn) { btn.textContent = 'Enable'; btn.disabled = false; }
+};
+
+window.sendTestNotification = function() {
+  if (_notifPermission !== 'granted') {
+    showToast('Enable push notifications first', 'var(--amber)');
+    return;
+  }
+  const demos = [
+    { title: '✅ New Task Added', body: 'Review pull requests has been added to your tasks', type: 'task' },
+    { title: '📅 Event Reminder', body: 'Team standup starts in 10 minutes at 9:00 AM', type: 'reminder' },
+    { title: '🔥 Streak Milestone!', body: "You're on a 7-day streak with ✅ Morning Workout — keep it up!", type: 'streak' },
+  ];
+  const demo = demos[Math.floor(Math.random() * demos.length)];
+  notify(demo.title, demo.body, demo.type, 'test');
+  sendNativeNotification(demo.title, demo.body, 'test');
+};
+
+function updateNotifPermBanner() {
+  const banner = $('notifPermBanner');
+  const label  = $('notifPermLabel');
+  const sub    = $('notifPermSub');
+  const btn    = $('notifEnableBtn');
+  if (!banner) return;
+  _notifPermission = Notification.permission;
+  if (_notifPermission === 'granted') {
+    if (label) label.textContent = '✓ Push Notifications Active';
+    if (sub) sub.textContent = 'You are receiving real-time alerts';
+    if (btn) { btn.textContent = 'Active'; btn.disabled = true; btn.style.background = 'var(--green)'; }
+    banner.style.borderColor = 'rgba(34,197,94,.3)';
+    banner.style.background = 'linear-gradient(90deg,rgba(34,197,94,.08),rgba(34,197,94,.04))';
+  } else if (_notifPermission === 'denied') {
+    if (label) label.textContent = 'Notifications Blocked';
+    if (sub) sub.textContent = 'Enable in browser settings → Site Settings → Notifications';
+    if (btn) { btn.textContent = 'Blocked'; btn.disabled = true; btn.style.background = 'var(--danger)'; }
+    banner.style.borderColor = 'rgba(239,68,68,.3)';
+    banner.style.background = 'linear-gradient(90deg,rgba(239,68,68,.06),rgba(239,68,68,.03))';
+  } else {
+    if (label) label.textContent = 'Enable Push Notifications';
+    if (sub) sub.textContent = 'Get real-time alerts for events, tasks & habit streaks';
+    if (btn) { btn.textContent = 'Enable'; btn.disabled = false; btn.style.background = ''; }
+    banner.style.borderColor = '';
+    banner.style.background = '';
+  }
+}
+
+/* ── Wire notifStreaks toggle ── */
+function wireNotifStreaksToggle() {
+  const el = $('notifStreaks');
+  if (!el || el.dataset.wired) return;
+  el.dataset.wired = '1';
+  const s = getAppSettings();
+  el.checked = s.notifStreaks !== false;
+  el.addEventListener('change', async () => {
+    const s = getAppSettings(); s.notifStreaks = el.checked;
+    await saveAppSettings(s);
+    showToast('Streak alerts ' + (el.checked ? 'enabled ✓' : 'disabled'));
+  });
+}
+
+/* ── Wire notification functions to window exports ── */
+
+/* ── Trigger notifications on key events ── */
+// Override saveEvBtn to fire notification + reschedule reminders
+const _origSaveEv = $('saveEvBtn');
+if (_origSaveEv) {
+  // Already has a listener; we hook via the events object after save
+}
+
+// Patch snapshotAnalytics to check streaks after any habit change
+const _origSnapshotAnalytics = snapshotAnalytics;
+snapshotAnalytics = async function() {
+  await _origSnapshotAnalytics();
+  const s = getAppSettings();
+  if (s.notifStreaks !== false) await checkStreakMilestones();
+};
 </script>
 
 <!-- Fullscreen chart overlay -->
@@ -5274,8 +6182,8 @@ document.addEventListener('DOMContentLoaded', function() {
       </button>
     </div>
   </div>
-  <div style="flex:1;min-height:0;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);padding:12px 8px 8px;box-shadow:var(--shadow);">
-    <canvas id="activityChartFS" style="width:100%;height:100%;display:block;"></canvas>
+  <div id="fsChartBody" style="flex:1;min-height:0;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);padding:8px;box-shadow:var(--shadow);overflow:hidden;position:relative;">
+    <canvas id="activityChartFS" style="display:block;"></canvas>
   </div>
 </div>
 
