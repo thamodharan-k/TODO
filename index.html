@@ -66,7 +66,7 @@
 }
 
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-html,body { height:100%; font-family:var(--font); background:var(--bg); color:var(--text1); overflow:hidden; -webkit-font-smoothing:antialiased; }
+html,body { height:100%; font-family:var(--font); background:var(--bg); color:var(--text1); -webkit-font-smoothing:antialiased; overscroll-behavior-y:auto; }
 button { font-family:var(--font); cursor:pointer; border:none; background:none; }
 input,select,textarea { font-family:var(--font); }
 ::-webkit-scrollbar { width:4px; height:4px; }
@@ -1528,6 +1528,7 @@ tr:hover .h-row-actions { opacity:1; }
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
     padding: 12px 12px 72px !important;
     gap: 12px !important;
     display: flex;
@@ -3352,27 +3353,81 @@ tr:hover .h-row-actions { opacity:1; }
           </div>
 
           <div class="set-card">
-            <div class="set-card-title">Event Reminder Time</div>
-            <div class="set-row" id="notifR10" onclick="setReminderTime(10)" style="cursor:pointer;">
+            <div class="set-card-title">Event Reminder Times <span style="font-size:.6rem;font-weight:600;color:var(--text3);margin-left:6px;letter-spacing:.04em;text-transform:none;">Select multiple</span></div>
+            <!-- Exact time -->
+            <div class="set-row notif-check-row" data-rtime="0">
+              <div class="set-row-left">
+                <div class="set-row-label">At event time</div>
+                <div class="set-row-desc">Notify exactly when the event starts</div>
+              </div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="0"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
+            </div>
+            <!-- 5 min -->
+            <div class="set-row notif-check-row" data-rtime="5">
+              <div class="set-row-left">
+                <div class="set-row-label">5 minutes before</div>
+                <div class="set-row-desc">Quick heads-up just before the event</div>
+              </div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="5"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
+            </div>
+            <!-- 10 min -->
+            <div class="set-row notif-check-row" data-rtime="10">
               <div class="set-row-left">
                 <div class="set-row-label">10 minutes before</div>
-                <div class="set-row-desc">Get notified 10 minutes before each event starts</div>
+                <div class="set-row-desc">Get notified 10 minutes before the event</div>
               </div>
-              <div class="set-radio-dot" data-rtime="10"></div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="10"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
             </div>
-            <div class="set-row" id="notifR30" onclick="setReminderTime(30)" style="cursor:pointer;">
+            <!-- 30 min -->
+            <div class="set-row notif-check-row" data-rtime="30">
               <div class="set-row-left">
                 <div class="set-row-label">30 minutes before</div>
-                <div class="set-row-desc">Get notified 30 minutes before each event starts</div>
+                <div class="set-row-desc">Get notified 30 minutes before the event</div>
               </div>
-              <div class="set-radio-dot" data-rtime="30"></div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="30"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
             </div>
-            <div class="set-row" id="notifR60" onclick="setReminderTime(60)" style="cursor:pointer;">
+            <!-- 1 hour -->
+            <div class="set-row notif-check-row" data-rtime="60">
               <div class="set-row-left">
                 <div class="set-row-label">1 hour before</div>
-                <div class="set-row-desc">Get notified 1 hour before each event starts</div>
+                <div class="set-row-desc">Get notified 1 hour before the event</div>
               </div>
-              <div class="set-radio-dot active" data-rtime="60"></div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="60" checked/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
+            </div>
+            <!-- 1 day -->
+            <div class="set-row notif-check-row" data-rtime="1440">
+              <div class="set-row-left">
+                <div class="set-row-label">1 day before</div>
+                <div class="set-row-desc">Get notified the day before the event</div>
+              </div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="1440"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
+            </div>
+            <!-- 2 days -->
+            <div class="set-row notif-check-row" data-rtime="2880">
+              <div class="set-row-left">
+                <div class="set-row-label">2 days before</div>
+                <div class="set-row-desc">Get notified 2 days before the event</div>
+              </div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="2880"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
+            </div>
+            <!-- 3 days -->
+            <div class="set-row notif-check-row" data-rtime="4320">
+              <div class="set-row-left">
+                <div class="set-row-label">3 days before</div>
+                <div class="set-row-desc">Get notified 3 days before the event</div>
+              </div>
+              <label class="set-toggle"><input type="checkbox" class="notif-rtime-cb" data-rtime="4320"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
+            </div>
+          </div>
+
+          <div class="set-card">
+            <div class="set-card-title">End-of-Day Task Reminder</div>
+            <div class="set-row">
+              <div class="set-row-left">
+                <div class="set-row-label">Hourly Evening Alerts</div>
+                <div class="set-row-desc">If tasks remain incomplete after 6 PM, receive an hourly popup until midnight or all tasks are done</div>
+              </div>
+              <label class="set-toggle"><input type="checkbox" id="notifEOD"/><div class="set-toggle-track"></div><div class="set-toggle-thumb"></div></label>
             </div>
           </div>
 
@@ -3610,6 +3665,50 @@ tr:hover .h-row-actions { opacity:1; }
     <div style="display:flex;flex-direction:column;gap:8px;">
       <button id="deleteConfirmYes" style="width:100%;padding:10px;border-radius:var(--r-sm);border:none;background:var(--danger);color:#fff;font-family:var(--font);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 2px 10px rgba(239,68,68,.3);">Delete</button>
       <button id="deleteConfirmNo" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font);font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RE-AUTH MODAL (used for delete account) -->
+<div class="modal-ov" id="reAuthOv">
+  <div class="modal-box" style="max-width:380px;padding:28px 28px 24px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div style="font-size:.92rem;font-weight:800;color:var(--text1);">Confirm Your Identity</div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Enter your password to permanently delete your account</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:.74rem;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;">Email</label>
+        <div style="font-size:.82rem;color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px;" id="reAuthEmail">—</div>
+      </div>
+      <div>
+        <label style="font-size:.74rem;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;" for="reAuthPw">Password</label>
+        <div style="position:relative;">
+          <input type="password" id="reAuthPw" placeholder="Your current password"
+            style="width:100%;padding:9px 38px 9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text1);font-family:var(--font);font-size:.84rem;outline:none;transition:border-color .15s;box-sizing:border-box;"
+            onfocus="this.style.borderColor=\'var(--danger)\'" onblur="this.style.borderColor=\'var(--border2)\'"/>
+          <button type="button" id="reAuthPwToggle" style="position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);padding:3px;display:flex;">
+            <svg id="reAuthEyeIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div id="reAuthErr" style="display:none;color:var(--danger);font-size:.71rem;font-weight:600;margin-top:5px;"></div>
+      </div>
+      <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:.72rem;color:var(--danger);line-height:1.5;">
+        This will <strong>permanently delete</strong> your account and all data. This cannot be undone.
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:20px;">
+      <button id="reAuthConfirmBtn" style="width:100%;padding:10px;border-radius:var(--r-sm);border:none;background:var(--danger);color:#fff;font-family:var(--font);font-size:.84rem;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 2px 10px rgba(239,68,68,.3);">
+        Delete My Account
+      </button>
+      <button id="reAuthCancelBtn" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font);font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s;">
+        Cancel
+      </button>
     </div>
   </div>
 </div>
@@ -3939,8 +4038,8 @@ function notify(title, body, type = 'info', tag = 'haybro') {
 }
 
 /* ── Schedule event reminders ── */
+/* ── Schedule event reminders — fires for ALL selected reminder times ── */
 function scheduleEventReminders() {
-  // Clear existing timers
   _reminderTimers.forEach(t => clearTimeout(t));
   _reminderTimers = [];
 
@@ -3948,9 +4047,12 @@ function scheduleEventReminders() {
   const pushEnabled = s.notifPush !== false;
   if (!pushEnabled || _notifPermission !== 'granted') return;
 
-  const reminderMins = s.reminderTime || 60;
+  // Get all selected reminder offsets (array of minutes; 0 = at event time)
+  const selectedOffsets = Array.isArray(s.reminderTimes) && s.reminderTimes.length
+    ? s.reminderTimes
+    : [60]; // default: 1 hour before
+
   const now = Date.now();
-  const todayKey = dKey(new Date());
 
   Object.keys(events).forEach(dk => {
     (events[dk] || []).forEach(ev => {
@@ -3959,22 +4061,30 @@ function scheduleEventReminders() {
       const evDate = new Date(dk + 'T00:00:00');
       evDate.setHours(h, m, 0, 0);
       const evTime = evDate.getTime();
-      const reminderTime = evTime - reminderMins * 60000;
 
-      if (reminderTime > now) {
-        const delay = reminderTime - now;
+      selectedOffsets.forEach(offsetMins => {
+        const fireTime = evTime - offsetMins * 60000;
+        if (fireTime <= now) return; // already passed
+
+        const delay = fireTime - now;
+        const label = offsetMins === 0       ? 'is starting now'
+                    : offsetMins < 60        ? `starts in ${offsetMins} minute${offsetMins !== 1 ? 's' : ''}`
+                    : offsetMins === 60      ? 'starts in 1 hour'
+                    : offsetMins === 1440    ? 'is tomorrow'
+                    : offsetMins === 2880    ? 'is in 2 days'
+                    : offsetMins === 4320    ? 'is in 3 days'
+                    : `starts in ${Math.round(offsetMins/60)} hours`;
+
+        const title  = offsetMins === 0 ? `🔔 Starting now: ${ev.title}` : `⏰ Upcoming: ${ev.title}`;
+        const body   = `${ev.title} ${label} at ${fmt12(ev.start)}`;
+        const tag    = `remind-${ev.id}-${offsetMins}`;
+
         const t = setTimeout(() => {
-          const label = reminderMins === 60 ? '1 hour' : `${reminderMins} minutes`;
-          notify(
-            `⏰ Upcoming: ${ev.title}`,
-            `Starting in ${label} at ${fmt12(ev.start)}`,
-            'reminder',
-            `remind-${ev.id}`
-          );
-          sendNativeNotification(`⏰ ${ev.title}`, `Starting in ${reminderMins === 60 ? '1 hour' : reminderMins + ' min'} at ${fmt12(ev.start)}`, `remind-${ev.id}`);
+          notify(title, body, 'reminder', tag);
+          sendNativeNotification(title, body, tag);
         }, delay);
         _reminderTimers.push(t);
-      }
+      });
     });
   });
 }
@@ -4005,6 +4115,50 @@ function scheduleDailyReminder() {
     sendNativeNotification('🌅 Good morning — Hay Bro', body, 'daily-reminder');
     scheduleDailyReminder(); // reschedule for tomorrow
   }, delay);
+}
+
+/* ── End-of-day hourly reminder (6 PM → midnight) for incomplete tasks ── */
+let _eodReminderTimer = null;
+function scheduleEODReminder() {
+  if (_eodReminderTimer) clearTimeout(_eodReminderTimer);
+  const s = getAppSettings();
+  if (!s.notifEOD || _notifPermission !== 'granted') return;
+
+  const now = new Date();
+  const h = now.getHours();
+  const todayKey = dKey(now);
+
+  // Only run between 18:00 and 23:59
+  if (h >= 18 && h < 24) {
+    const pending = (tasks || []).filter(t => !t.done).length;
+    if (pending > 0) {
+      const msgs = [
+        `You still have ${pending} task${pending !== 1 ? 's' : ''} to complete today!`,
+        `⚡ ${pending} unfinished task${pending !== 1 ? 's' : ''} — don't let the day slip by!`,
+        `🕐 Time check: ${pending} task${pending !== 1 ? 's' : ''} remaining before midnight.`,
+        `📋 Reminder: ${pending} task${pending !== 1 ? 's' : ''} need your attention today!`,
+      ];
+      const body = msgs[h % msgs.length];
+      notify('📋 Tasks Remaining', body, 'task', `eod-${h}`);
+      sendNativeNotification('📋 Tasks Remaining — Hay Bro', body, `eod-${h}`);
+    }
+  }
+
+  // Schedule next check: top of next hour
+  const nextHour = new Date(now);
+  nextHour.setHours(now.getHours() + 1, 0, 5, 0); // +5s buffer
+  const nh = nextHour.getHours();
+
+  // Stop after midnight, restart at 18:00 tomorrow if needed
+  if (nh >= 18 && nh < 24) {
+    _eodReminderTimer = setTimeout(scheduleEODReminder, nextHour - now);
+  } else if (nh >= 0 && nh < 18) {
+    // Schedule to wake at 18:00 today/tomorrow
+    const next6pm = new Date(now);
+    next6pm.setHours(18, 0, 5, 0);
+    if (next6pm <= now) next6pm.setDate(next6pm.getDate() + 1);
+    _eodReminderTimer = setTimeout(scheduleEODReminder, next6pm - now);
+  }
 }
 
 /* ── Streak milestone notification ── */
@@ -5589,8 +5743,9 @@ function loadSettingsPage(){
   if($('notifPush')) $('notifPush').checked = !!s.notifPush;
   if($('notifDaily')) $('notifDaily').checked = s.notifDaily !== false;
   if($('notifStreaks')) $('notifStreaks').checked = s.notifStreaks !== false;
-  const rTime = s.reminderTime || 60;
-  setReminderTime(rTime, true);
+  if($('notifEOD')) $('notifEOD').checked = !!s.notifEOD;
+  // Sync reminder time checkboxes (multi-select)
+  syncReminderCheckboxes();
   // Update permission banner and wire streak toggle (safe to call anytime)
   updateNotifPermBanner();
   wireNotifStreaksToggle();
@@ -5654,9 +5809,31 @@ function initSettingsNav(){
         const s = getAppSettings();
         s[id] = el.checked;
         await saveAppSettings(s);
+        if(id === 'notifPush'){
+          if(el.checked) { scheduleEventReminders(); scheduleDailyReminder(); scheduleEODReminder(); }
+        }
+        if(id === 'notifDaily') el.checked ? scheduleDailyReminder() : (_dailyReminderTimer && clearTimeout(_dailyReminderTimer));
         showToast('Notification preferences saved ✓');
       });
     }
+  });
+
+  // EOD toggle
+  const eodEl = $('notifEOD');
+  if(eodEl){
+    eodEl.addEventListener('change', async ()=>{
+      const s = getAppSettings();
+      s.notifEOD = eodEl.checked;
+      await saveAppSettings(s);
+      if(eodEl.checked) scheduleEODReminder();
+      else if(_eodReminderTimer){ clearTimeout(_eodReminderTimer); _eodReminderTimer = null; }
+      showToast(eodEl.checked ? 'Evening task alerts enabled ✓' : 'Evening task alerts disabled');
+    });
+  }
+
+  // Reminder time multi-select checkboxes
+  qsa('.notif-rtime-cb').forEach(cb => {
+    cb.addEventListener('change', () => toggleReminderTime(parseInt(cb.dataset.rtime)));
   });
 
   // Avatar — clicking avatar or upload button opens file picker
@@ -5719,26 +5896,128 @@ async function saveProfileSettings(){
 
 /* ── Delete Account ── */
 async function confirmDeleteAccount(){
-  showDeleteConfirm(
-    'Delete Account?',
-    'All your data will be permanently deleted. This cannot be undone.',
-    async ()=>{
-      const user = _fbAuth.currentUser;
-      if(user){
+  const user = _fbAuth.currentUser;
+  if(!user) return;
+
+  // Google/OAuth users don't have a password — handle separately
+  const isPasswordUser = user.providerData.some(p => p.providerId === 'password');
+
+  if(!isPasswordUser){
+    // Google sign-in: just show the regular confirm dialog (re-auth via popup not needed for delete in most cases)
+    showDeleteConfirm(
+      'Delete Account?',
+      'All your data will be permanently deleted. This cannot be undone.',
+      async ()=>{
         try{
-          // Delete all Firestore user data
           const collections = ['tasks','events','habits','ledger','settings','analyticsLog'];
           for(const col of collections){
             try{ await deleteDoc(userDocRef(user.uid,'data',col)); }catch(e){}
           }
           try{ await deleteDoc(userDocRef(user.uid,'profile','info')); }catch(e){}
           await user.delete();
-        }catch(err){ showToast('Re-login required to delete account','var(--danger)'); return; }
+          clearSession(); location.reload();
+        }catch(err){
+          showToast('Please sign out and sign in again, then retry', 'var(--danger)');
+        }
       }
-      clearSession();
-      location.reload();
-    }
-  );
+    );
+    return;
+  }
+
+  // Email/password user — open re-auth modal
+  const emailEl = $('reAuthEmail');
+  const pwEl    = $('reAuthPw');
+  const errEl   = $('reAuthErr');
+  if(emailEl) emailEl.textContent = user.email || '—';
+  if(pwEl)    pwEl.value = '';
+  if(errEl)  { errEl.style.display = 'none'; errEl.textContent = ''; }
+  $('reAuthOv').classList.add('open');
+  setTimeout(()=>{ if(pwEl) pwEl.focus(); }, 80);
+}
+
+/* ── Re-Auth modal wiring ── */
+function initReAuthModal(){
+  const ov     = $('reAuthOv');
+  const pwEl   = $('reAuthPw');
+  const errEl  = $('reAuthErr');
+  const confirmBtn = $('reAuthConfirmBtn');
+  const cancelBtn  = $('reAuthCancelBtn');
+  const toggleBtn  = $('reAuthPwToggle');
+  const eyeIcon    = $('reAuthEyeIcon');
+
+  if(!ov) return;
+
+  function closeModal(){
+    ov.classList.remove('open');
+    if(pwEl) pwEl.value = '';
+    if(errEl){ errEl.style.display='none'; errEl.textContent=''; }
+    if(confirmBtn){ confirmBtn.textContent='Delete My Account'; confirmBtn.disabled=false; }
+  }
+
+  if(cancelBtn) cancelBtn.addEventListener('click', closeModal);
+  ov.addEventListener('click', e=>{ if(e.target===ov) closeModal(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && ov.classList.contains('open')) closeModal(); });
+
+  // Password toggle
+  if(toggleBtn && pwEl && eyeIcon){
+    toggleBtn.addEventListener('click', ()=>{
+      const show = pwEl.type === 'password';
+      pwEl.type = show ? 'text' : 'password';
+      eyeIcon.innerHTML = show
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    });
+  }
+
+  // Submit on Enter
+  if(pwEl) pwEl.addEventListener('keydown', e=>{ if(e.key==='Enter') confirmBtn?.click(); });
+
+  if(confirmBtn){
+    confirmBtn.addEventListener('click', async ()=>{
+      const pw = pwEl?.value || '';
+      if(!pw){ 
+        if(errEl){ errEl.textContent='Please enter your password'; errEl.style.display='block'; }
+        pwEl?.focus(); return;
+      }
+      confirmBtn.textContent = 'Verifying…';
+      confirmBtn.disabled = true;
+      if(errEl){ errEl.style.display='none'; errEl.textContent=''; }
+
+      const user = _fbAuth.currentUser;
+      if(!user){ closeModal(); return; }
+
+      try{
+        // Import re-auth helpers
+        const { reauthenticateWithCredential, EmailAuthProvider } = await import(
+          'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'
+        );
+        const credential = EmailAuthProvider.credential(user.email, pw);
+        await reauthenticateWithCredential(user, credential);
+
+        // Password correct — proceed with deletion
+        confirmBtn.textContent = 'Deleting…';
+        const collections = ['tasks','events','habits','ledger','settings','analyticsLog'];
+        for(const col of collections){
+          try{ await deleteDoc(userDocRef(user.uid,'data',col)); }catch(e){}
+        }
+        try{ await deleteDoc(userDocRef(user.uid,'profile','info')); }catch(e){}
+        await user.delete();
+        closeModal();
+        clearSession();
+        location.reload();
+      }catch(err){
+        confirmBtn.textContent = 'Delete My Account';
+        confirmBtn.disabled = false;
+        const msg = (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential')
+          ? 'Incorrect password — please try again'
+          : (err.code === 'auth/too-many-requests')
+          ? 'Too many attempts — please try again later'
+          : (err.message || 'Verification failed');
+        if(errEl){ errEl.textContent = msg; errEl.style.display = 'block'; }
+        if(pwEl){ pwEl.value=''; pwEl.focus(); }
+      }
+    });
+  }
 }
 
 /* ── Change Password ── */
@@ -5781,15 +6060,43 @@ function logoutAllDevices(){
   });
 }
 
-/* ── Reminder time ── */
-async function setReminderTime(mins, silent){
-  qsa('.set-radio-dot').forEach(d=>{
-    d.classList.toggle('active', parseInt(d.dataset.rtime)===mins);
+/* ── Reminder times — multi-select array stored in settings.reminderTimes ── */
+function getReminderTimes(){
+  const s = getAppSettings();
+  if(Array.isArray(s.reminderTimes) && s.reminderTimes.length) return s.reminderTimes;
+  // migrate legacy single value
+  if(s.reminderTime) return [s.reminderTime];
+  return [60]; // default
+}
+
+async function toggleReminderTime(mins){
+  const times = getReminderTimes();
+  const idx = times.indexOf(mins);
+  if(idx === -1) times.push(mins);
+  else times.splice(idx, 1);
+  // Always keep at least one option
+  if(!times.length) times.push(60);
+  const s = getAppSettings();
+  s.reminderTimes = times;
+  delete s.reminderTime; // remove legacy key
+  await saveAppSettings(s);
+  syncReminderCheckboxes();
+  scheduleEventReminders(); // reschedule with new settings
+  showToast('Reminder preferences saved ✓');
+}
+
+/* ── Sync checkbox UI to current settings ── */
+function syncReminderCheckboxes(){
+  const times = getReminderTimes();
+  qsa('.notif-rtime-cb').forEach(cb => {
+    cb.checked = times.includes(parseInt(cb.dataset.rtime));
   });
-  if(!silent){
-    const s=getAppSettings(); s.reminderTime=mins; await saveAppSettings(s);
-    showToast('Reminder set to '+( mins===60?'1 hour':mins+' minutes')+' before ✓');
-  }
+}
+
+/* ── Legacy setReminderTime kept for backward compat ── */
+async function setReminderTime(mins, silent){
+  if(!silent) await toggleReminderTime(mins);
+  else syncReminderCheckboxes();
 }
 
 /* ── Theme from settings toggle ── */
@@ -5969,6 +6276,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 
     showDashboard(_currentSession);
     initSettingsNav();
+    initReAuthModal();
     await init();
 
     // Bootstrap notifications if already permitted
@@ -5976,6 +6284,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
       await initFCMMessaging();
       scheduleEventReminders();
       scheduleDailyReminder();
+      scheduleEODReminder();
     }
     applySectionFocus('all');
   });
@@ -6153,6 +6462,7 @@ window.enablePushNotifications = async function() {
     if (notifPushEl) notifPushEl.checked = true;
     scheduleEventReminders();
     scheduleDailyReminder();
+    scheduleEODReminder();
   }
   updateNotifPermBanner();
   if (btn) { btn.textContent = 'Enable'; btn.disabled = false; }
